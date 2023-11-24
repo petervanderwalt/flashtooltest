@@ -340,6 +340,64 @@ programButton.onclick = async () => {
   }
 }
 
+
+programBloxButton.onclick = async () => {
+  const alertMsg = document.getElementById("alertmsg");
+  //const err = validate_program_inputs();
+
+  // if (err != "success") {
+  //   alertMsg.innerHTML = "<strong>" + err + "</strong>";
+  //   alertDiv.style.display = "block";
+  //   return;
+  // }
+
+  // Hide error message
+  alertDiv.style.display = "none";
+
+  const fileArray = [];
+  const progressBars = [];
+
+
+  const request = new XMLHttpRequest();
+  request.overrideMimeType('text/plain; charset=x-user-defined');
+  request.open('GET', "/switchblox.bin", false);
+  request.send();
+  //var data = Uint8Array.from(request.response, c => c.charCodeAt(0));
+  var data = request.response;
+
+  fileArray.push({
+    data: data,
+    address: 0
+  });
+
+
+  console.log(fileArray);
+
+  try {
+    await esploader.write_flash({
+      fileArray,
+      flash_size: 'keep',
+      reportProgress(fileIndex, written, total) {
+        console.log(written / total * 100);
+      },
+      calculateMD5Hash: (image) => CryptoJS.MD5(CryptoJS.enc.Latin1.parse(image)),
+    });
+  } catch (e) {
+    console.error(e);
+    term.writeln(`Error: ${e.message}`);
+  } finally {
+    // Hide progress bars and show erase buttons
+    // for (let index = 1; index < table.rows.length; index++) {
+    //   table.rows[index].cells[2].style.display = "none";
+    //   table.rows[index].cells[3].style.display = "initial";
+    // }
+    $("#resetButton").click()
+    term.writeln("Please check that the device booted up with the new Firmware")
+    $("#disconnectButton").click()
+    term.writeln("FINISHED")
+  }
+}
+
 programSWButton.onclick = async () => {
   const alertMsg = document.getElementById("alertmsg");
   //const err = validate_program_inputs();
